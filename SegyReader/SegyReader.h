@@ -213,7 +213,7 @@ private:
 	int sample_sum{};
 	int trace_sum{};
 	int data_type_code{};
-	enum DataType { IBM = 1, IEEE = 5, PC = 6 };
+	enum DataType { IBM = 1, IEEE = 5};
 
 	int getDataType(void);
 	int readSampleSum(void);

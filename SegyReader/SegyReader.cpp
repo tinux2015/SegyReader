@@ -42,12 +42,12 @@ void ibm2Ieee(float* input, int swap)
 		*umantis = *umantis >> 9; /* MOST IMPORTANT an UNSIGNED shift back down */
 		expll = 0x7F + (expp * 4 - shift); /* add in excess 172 */
 
-										   /* now mantissa is correctly aligned, now create the other two pairs */
-										   /* needed the extended sign word and the exponent word               */
+		/* now mantissa is correctly aligned, now create the other two pairs */
+		/* needed the extended sign word and the exponent word               */
 
 		expll = expll << 23;        /* shift exponent up */
 
-									/* combine them into a floating point IEEE format !     */
+		/* combine them into a floating point IEEE format !     */
 
 		if (sign) *umantis = expll | *mantis | 0x80000000;
 		else     *umantis = expll | *mantis; /* set or don't set sign bit */
@@ -235,7 +235,7 @@ int SegyReader::readTraceSum()
 		cerr << "Please open a segy file .Check the Function--getTraceNum()" << endl;
 		abort();
 	}
-	const long offset = 0 - (sample_sum * data_bytes[data_type_code] + 240);
+	const long offset = 0 - (sample_sum * data_bytes[data_type_code-1] + 240);
 	(segy_input).seekg(offset, ios::end);
 	
 	const auto tmp_thdr = new Thdr;
@@ -343,7 +343,7 @@ void SegyReader::readTraceHeader(const int trace_num)
 	const auto tmp_thdr = new Thdr;
 	if (trace_num<=trace_sum && trace_num>=1)
 	{
-		const uint_32 byte_offset = 3600 + (trace_num - 1)*(240 + data_bytes[data_type_code] * sample_sum);
+		const uint_32 byte_offset = 3600 + (trace_num - 1)*(240 + data_bytes[data_type_code-1] * sample_sum);
 		(segy_input).seekg(byte_offset, ios::beg);
 		memset(tmp_thdr, '\0', TRACE_HEADER_SIZE);
 		(segy_input).read(reinterpret_cast<char*>(tmp_thdr), TRACE_HEADER_SIZE);
@@ -364,7 +364,7 @@ void SegyReader::readTraceHeader(const int trace_num)
  */
 float SegyReader::getSpecificData(const int trace_num, const int sample_num)
 {
-	const int tmp_bytes = data_bytes[data_type_code];
+	const int tmp_bytes = data_bytes[data_type_code-1];
 	if ((trace_num >= 1) &&(trace_num <= trace_sum) &&(sample_num >= 1)&&(trace_num <= trace_sum))
 	{   
 		float result{ 0 };
@@ -385,11 +385,17 @@ float SegyReader::getSpecificData(const int trace_num, const int sample_num)
 				abort();
 			}
 		case IEEE:
-			cerr << "These function has not been finished." << endl;
-			abort();
-		case PC:
-			cerr << "These function has not been finished." << endl;
-			abort();
+			fseek(segy_file, byte_offset, SEEK_SET);
+			if (0 != fread(&result, tmp_bytes, 1, segy_file))
+			{
+				swapByte4(reinterpret_cast<uint_32 *>(&result));
+				return result;
+			}
+			else
+			{
+				cerr << "There is something wrong in getSpecificData." << endl;
+				abort();
+			}
 		default:
 			cerr << "These function has not been finished." << endl;
 			abort();
