@@ -19,4 +19,4 @@ SegyReader segy("test_file_name.sgy");
 
 例如：
 
-segy.outputTD2Txt（“output_file_name”,start_trace,endt_trace）;
+segy.outputTD2Txt（“output_file_name”,start_trace,end_trace）;
