@@ -232,7 +232,7 @@ int SegyReader::readTraceSum()
 {
 	if (!segy_input.is_open())
 	{
-		cerr << "Please open a segy file .Check the Function--getTraceNum()" << endl;
+		cerr << "Please open a segy file .Check the Function--readTraceSum()" << endl;
 		abort();
 	}
 	//get the size of the file
