@@ -195,7 +195,7 @@ public:
 	int getSampleSum(void) const;
 	int getTraceSum(void) const;
 	float getSpecificData(const int trace_num, const int sample_num);//one point
-	void readTraceHeader(const int trace_num);
+	Thdr *getTraceHeader(const int trace_num);
 	void outputTD2Txt(const std::string& output_file_name, const int single_trace_num);
 	void outputTD2Txt(const std::string& output_file_name, const int trace_num_beg, const int trace_num_end);
 	void outputTD2Binary(const std::string& output_file_name, const int single_trace_num);
@@ -218,13 +218,14 @@ private:
 	int getDataType(void);
 	int readSampleSum(void);
 	int readTraceSum(void);
-	bool convertBinary(void *data, int size);
-	void readBinaryHeader(void);
+	bool convertBinary(void *data, int size);	
 	void readTextHeader(void);
+	void readBinaryHeader(void);
+	void readTraceHeader(const int trace_num);
 	void swapByte2(uint_16 *data);
 	void swapByte4(uint_32 *data);
 	void swapBinaryHeader(Bhdr *bhdr);
 	void swapTraceHeader(Thdr *thdr);
-	void ebcdic2Ascii(Ehdr *tmp_ehdr);
+	void ebcdic2Ascii(Ehdr *ehdr);
 };
 #endif //!_SEGYREADER_H_

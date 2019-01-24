@@ -235,18 +235,16 @@ int SegyReader::readTraceSum()
 		cerr << "Please open a segy file .Check the Function--getTraceNum()" << endl;
 		abort();
 	}
-	const long offset = 0 - (sample_sum * data_bytes[data_type_code-1] + 240);
-	(segy_input).seekg(offset, ios::end);
+	//get the size of the file
+	segy_input.seekg(0, ios::end);
+	const size_t file_size = segy_input.tellg();//bytes
+	readSampleSum();
+	trace_sum = (file_size - 3600) / (240 + sample_sum * 4);
 	
-	const auto tmp_thdr = new Thdr;
-	(segy_input).read(reinterpret_cast<char*>(tmp_thdr), TRACE_HEADER_SIZE);
-	swapTraceHeader(tmp_thdr);
-	trace_sum = (*tmp_thdr).trace_sequence_number_within_original_field_record;
-	delete tmp_thdr;
 	return trace_sum;
 }
 
-void SegyReader::ebcdic2Ascii(Ehdr* tmp_ehdr) 
+void SegyReader::ebcdic2Ascii(Ehdr* ehdr) 
 {
 	char ebcdic_to_ascii_table[256] =
 	{
@@ -283,7 +281,7 @@ void SegyReader::ebcdic2Ascii(Ehdr* tmp_ehdr)
 		0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,
 		0x38,0x39,0x00,0x00,0x00,0x00,0x00,0x00,
 	};
-	for (unsigned char& i : (*tmp_ehdr).text_header) //from ebcdicvonverter.cpp
+	for (unsigned char& i : (*ehdr).text_header) //from ebcdicvonverter.cpp
 	{
 		i = ebcdic_to_ascii_table[i];
 	}
@@ -325,8 +323,11 @@ SegyReader::~SegyReader()
 	bhdr = nullptr;
 	delete ehdr;
 	ehdr = nullptr;
-	delete thdr;
-	thdr = nullptr;
+	if (!thdr)
+	{
+		delete thdr;
+		thdr = nullptr;
+	}
 }
 
 /**
@@ -335,12 +336,13 @@ SegyReader::~SegyReader()
  */
 void SegyReader::readTraceHeader(const int trace_num)
 {
-	if (!thdr)
+	if (thdr)
 	{
 		delete thdr;
 		thdr = nullptr;
 	}
-	const auto tmp_thdr = new Thdr;
+	auto tmp_thdr = new Thdr;
+	//tmp_thdr = nullptr;
 	if (trace_num<=trace_sum && trace_num>=1)
 	{
 		const uint_32 byte_offset = 3600 + (trace_num - 1)*(240 + data_bytes[data_type_code-1] * sample_sum);
@@ -406,6 +408,13 @@ float SegyReader::getSpecificData(const int trace_num, const int sample_num)
 		cerr << "Trace_num or sample_num out of range.Please check." << endl;
 		abort();
 	}
+}
+
+Thdr* SegyReader::getTraceHeader(const int trace_num)
+{
+	readTraceHeader(trace_num);
+	//Thdr* out_thdr = thdr;
+	return thdr;
 }
 
 /**

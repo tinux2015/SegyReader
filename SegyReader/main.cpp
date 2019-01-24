@@ -1,9 +1,9 @@
 #include"SegyReader.h"
 using namespace std;
-int main(void)
+int main1(void)
 {
-	SegyReader segy("test_ieee.sgy");
+	SegyReader segy("test.sgy");
 	cout << "Sample_sum = " << segy.getSampleSum() << endl;
-	segy.outputTD2Txt("test_ieee_1_6", 1,6);
+	segy.outputTD2Txt("test_1_6", 1,6);
 	return 0;
 }
