@@ -212,6 +212,8 @@ void SegyReader::swapTraceHeader(Thdr * thdr)
 
 	convertBinary(&((*thdr).x_cdp_coordinate), 4);
 	convertBinary(&((*thdr).y_cdp_coordinate), 4);
+	convertBinary(&((*thdr).num_in_line), 4);
+	convertBinary(&((*thdr).num_cross_line), 4);
 }
 
 int SegyReader::readSampleSum()
@@ -297,7 +299,7 @@ SegyReader::SegyReader() = default;
  * \brief overload constructor
  * \param segy_file_name 
  */
-SegyReader::SegyReader(const string& segy_file_name): file_name(segy_file_name),segy_input(segy_file_name)
+SegyReader::SegyReader(const string& segy_file_name): file_name(segy_file_name),segy_input(segy_file_name,ios::binary)
 {
 	if (segy_input.is_open())
 	{
@@ -342,10 +344,9 @@ void SegyReader::readTraceHeader(const int trace_num)
 		thdr = nullptr;
 	}
 	auto tmp_thdr = new Thdr;
-	//tmp_thdr = nullptr;
 	if (trace_num<=trace_sum && trace_num>=1)
 	{
-		const uint_32 byte_offset = 3600 + (trace_num - 1)*(240 + data_bytes[data_type_code-1] * sample_sum);
+		size_t byte_offset = 3600 + (trace_num - 1)*(240 + data_bytes[data_type_code-1] * sample_sum);
 		(segy_input).seekg(byte_offset, ios::beg);
 		memset(tmp_thdr, '\0', TRACE_HEADER_SIZE);
 		(segy_input).read(reinterpret_cast<char*>(tmp_thdr), TRACE_HEADER_SIZE);
